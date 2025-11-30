@@ -80,7 +80,7 @@ if st.session_state.page == "welcome":
 elif st.session_state.page == "dimensioning":
 
     st.markdown(
-        "<h1 style='text-align:center;'>📘 Dimensioning of PV Modules</h1>",
+        "<h1 style='text-align:center;'>📘 Part A: Dimensioning of PV Modules</h1>",
         unsafe_allow_html=True
     )
     st.write("Follow the structured technical steps below to complete your PV sizing process.")
