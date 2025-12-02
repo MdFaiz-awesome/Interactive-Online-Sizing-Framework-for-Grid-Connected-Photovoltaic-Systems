@@ -218,7 +218,14 @@ elif st.session_state.page == "dimensioning":
     N_max = N_up * N_across
 
     st.success(
-# =====================================================
+        f"""
+        ### 📊 Orientation: **{orientation}**
+        - Modules Upwards: **{N_up}**  
+        - Modules Across: **{N_across}**  
+        - **Total Installable PV Modules: {N_max}**
+        """
+    )
+    # =====================================================
 # STEP 3: BEST ORIENTATION & FINAL SYSTEM PERFORMANCE
 # =====================================================
 
@@ -289,4 +296,3 @@ with colF1:
 with colF2:
     st.metric("Total Yearly Energy (kWh/year)", f"{final_yearly_energy_total:,.2f}")
 
-    )
