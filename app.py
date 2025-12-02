@@ -218,10 +218,75 @@ elif st.session_state.page == "dimensioning":
     N_max = N_up * N_across
 
     st.success(
-        f"""
-        ### 📊 Orientation: **{orientation}**
-        - Modules Upwards: **{N_up}**  
-        - Modules Across: **{N_across}**  
-        - **Total Installable PV Modules: {N_max}**
-        """
+# =====================================================
+# STEP 3: BEST ORIENTATION & FINAL SYSTEM PERFORMANCE
+# =====================================================
+
+st.markdown("---")
+st.markdown(
+    """
+    <div style="padding:15px; border-radius:10px; 
+    background-color:#fff8e6; border-left:6px solid #f5a623;">
+        <h2>Step 3: Best Orientation & Final System Output</h2>
+        <p>The system automatically evaluates both orientations and identifies the configuration that allows the highest number of PV modules to be installed on the available site.</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+st.markdown("<br>", unsafe_allow_html=True)
+
+# --- Calculate both orientations ---
+N_landscape_up = math.floor(site_width / (Wm + delta))
+N_landscape_across = math.floor(site_length / (Lm + delta))
+N_landscape = N_landscape_up * N_landscape_across
+
+N_portrait_up = math.floor(site_width / (Lm + delta))
+N_portrait_across = math.floor(site_length / (Wm + delta))
+N_portrait = N_portrait_up * N_portrait_across
+
+# --- Determine best orientation ---
+if N_landscape >= N_portrait:
+    best_orientation = "Landscape"
+    best_count = N_landscape
+else:
+    best_orientation = "Portrait"
+    best_count = N_portrait
+
+# --- Display best result ---
+st.info(
+    f"""
+    ### 🏆 Recommended Orientation: **{best_orientation}**
+    - Maximum installable PV modules: **{best_count}**
+    """
+)
+
+st.markdown("---")
+
+# =====================================================
+# FINAL SYSTEM PERFORMANCE (BASED ON BEST ORIENTATION)
+# =====================================================
+
+final_power_output_total = power_output * best_count
+final_yearly_energy_total = yearly_energy_kwh * best_count
+
+st.markdown(
+    """
+    <div style="padding:15px; border-radius:10px; 
+    background-color:#e8f5ff; border-left:6px solid #007BFF;">
+        <h2>Final System Performance</h2>
+        <p>The following results represent the full system output based on the optimal PV orientation and maximum number of installable modules.</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+st.markdown("<br>", unsafe_allow_html=True)
+
+colF1, colF2 = st.columns(2)
+
+with colF1:
+    st.metric("Total Power Output (W)", f"{final_power_output_total:,.2f}")
+
+with colF2:
+    st.metric("Total Yearly Energy (kWh/year)", f"{final_yearly_energy_total:,.2f}")
+
     )
