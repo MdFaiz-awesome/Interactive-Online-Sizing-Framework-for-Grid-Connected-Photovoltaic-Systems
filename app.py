@@ -107,25 +107,25 @@ elif st.session_state.page == "dimensioning":
         # LEFT COLUMN
         with col1:
             st.markdown("### 🟦 Module Properties")
-            panel_length = st.number_input("Panel Length (m)", min_value=0.1, value=1.7)
-            panel_width = st.number_input("Panel Width (m)", min_value=0.1, value=1.1)
-            rated_power = st.number_input("Rated Power (W)", min_value=1, value=550)
+            panel_length = st.number_input("Panel Length (m)", min_value=0.1, value=2.382)
+            panel_width = st.number_input("Panel Width (m)", min_value=0.1, value=1.134)
+            rated_power = st.number_input("Rated Power (W)", min_value=1, value=605)
             isc_stc = st.number_input("Isc STC (A)", min_value=0.1, value=13.0)
             isc_max_inv = st.number_input("Isc Max Inv (A)", min_value=0.1, value=15.0)
 
         # RIGHT COLUMN
         with col2:
             st.markdown("### 🟩 Temperature & Performance Factors")
-            T_coef = st.number_input("Temperature Coefficient (°C)", value=-0.35)
-            T_mod = st.number_input("Module Temperature (°C)", value=45)
+            T_coef = st.number_input("Temperature Coefficient (°C)", value=-0.28)
+            T_mod = st.number_input("Module Temperature (°C)", value=55)
             T_src = st.number_input("Reference Temperature (°C)", value=25)
 
-            f_mm = st.number_input("Module mismatch, f_mm", value=0.98)
-            f_clean = st.number_input("Soiling, f_clean", value=0.97)
-            f_degrad = st.number_input("Degradation, f_degrad", value=0.99)
-            f_unshade = st.number_input("Shading, f_unshade", value=0.98)
-            eta_cable = st.number_input("Cable efficiency, η_cable", value=0.98)
-            eta_inv = st.number_input("Inverter efficiency, η_inv", value=0.96)
+            f_mm = st.number_input("Module mismatch, f_mm", value=0.97)
+            f_clean = st.number_input("Soiling, f_clean", value=0.96)
+            f_degrad = st.number_input("Degradation, f_degrad", value=0.975)
+            f_unshade = st.number_input("Shading, f_unshade", value=0.97)
+            eta_cable = st.number_input("Cable efficiency, η_cable", value=0.97)
+            eta_inv = st.number_input("Inverter efficiency, η_inv", value=0.98)
             peak_sun_hours = st.number_input("Peak Sun Hours (h/day)", value=4.0)
 
 
