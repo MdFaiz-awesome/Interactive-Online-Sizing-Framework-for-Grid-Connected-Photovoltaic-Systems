@@ -23,24 +23,37 @@ def switch_to_dimensioning():
 
 
 # -----------------------------------------------------
-# SET FIXED BACKGROUND IMAGE
+# SET FIXED BACKGROUND IMAGE (SAFE LOAD)
 # -----------------------------------------------------
 def apply_background():
-    with open("bg.jpg", "rb") as img_file:
-        encoded = base64.b64encode(img_file.read()).decode()
+    try:
+        with open("bg.jpg", "rb") as img_file:
+            encoded = base64.b64encode(img_file.read()).decode()
+            st.markdown(
+                f"""
+                <style>
+                .stApp {{
+                    background-image: url("data:image/jpg;base64,{encoded}");
+                    background-size: cover;
+                    background-position: center;
+                    background-attachment: fixed;
+                }}
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
+    except FileNotFoundError:
         st.markdown(
-            f"""
+            """
             <style>
-            .stApp {{
-                background-image: url("data:image/jpg;base64,{encoded}");
-                background-size: cover;
-                background-position: center;
-                background-attachment: fixed;
-            }}
+            .stApp {
+                background-color: #f2f2f2;
+            }
             </style>
             """,
             unsafe_allow_html=True
         )
+
 
 # =====================================================
 # PAGE 1: WELCOME PAGE
@@ -51,9 +64,11 @@ if st.session_state.page == "welcome":
 
     st.markdown(
         """
-        <div style="text-align:center; padding-top:40px; background:rgba(255,255,255,0.8); padding:20px; border-radius:12px;">
-            <h1 style='font-size:38px;'>
-                <b>Interactive Online Sizing Framework for Grid-Connected Photovoltaic Systems</b>
+        <div style="text-align:center; padding-top:40px; 
+        background:rgba(255,255,255,0.85); padding:20px; 
+        border-radius:12px; box-shadow:2px 2px 8px rgba(0,0,0,0.2);">
+            <h1 style='font-size:38px; font-weight:bold;'>
+                Interactive Online Sizing Framework for Grid-Connected Photovoltaic Systems
             </h1>
             <p style='font-size:20px;'>
                 Hello! This tool will assist you in designing and sizing your PV modules.
@@ -80,7 +95,7 @@ if st.session_state.page == "welcome":
 elif st.session_state.page == "dimensioning":
 
     st.markdown(
-        "<h1 style='text-align:center;'>📘 Part A: Dimensioning of PV Modules</h1>",
+        "<h1 style='text-align:center;'>📘 Dimensioning of PV Modules</h1>",
         unsafe_allow_html=True
     )
     st.write("Follow the structured technical steps below to complete your PV sizing process.")
@@ -107,32 +122,32 @@ elif st.session_state.page == "dimensioning":
         # LEFT COLUMN
         with col1:
             st.markdown("### 🟦 Module Properties")
-            panel_length = st.number_input("Panel Length (m)", min_value=0.1, value=2.382)
-            panel_width = st.number_input("Panel Width (m)", min_value=0.1, value=1.134)
-            rated_power = st.number_input("Rated Power (W)", min_value=1, value=605)
+            panel_length = st.number_input("Panel Length (m)", min_value=0.1, value=1.7)
+            panel_width = st.number_input("Panel Width (m)", min_value=0.1, value=1.1)
+            rated_power = st.number_input("Rated Power (W)", min_value=1, value=550)
             isc_stc = st.number_input("Isc STC (A)", min_value=0.1, value=13.0)
             isc_max_inv = st.number_input("Isc Max Inv (A)", min_value=0.1, value=15.0)
 
         # RIGHT COLUMN
         with col2:
             st.markdown("### 🟩 Temperature & Performance Factors")
-            T_coef = st.number_input("Temperature Coefficient (°C)", value=-0.28)
-            T_mod = st.number_input("Module Temperature (°C)", value=55)
+            T_coef = st.number_input("Temperature Coefficient (°C)", value=-0.35)
+            T_mod = st.number_input("Module Temperature (°C)", value=45)
             T_src = st.number_input("Reference Temperature (°C)", value=25)
 
-            f_mm = st.number_input("Module mismatch, f_mm", value=0.97)
-            f_clean = st.number_input("Soiling, f_clean", value=0.96)
-            f_degrad = st.number_input("Degradation, f_degrad", value=0.975)
-            f_unshade = st.number_input("Shading, f_unshade", value=0.97)
-            eta_cable = st.number_input("Cable efficiency, η_cable", value=0.97)
-            eta_inv = st.number_input("Inverter efficiency, η_inv", value=0.98)
+            f_mm = st.number_input("Module mismatch, f_mm", value=0.98)
+            f_clean = st.number_input("Soiling, f_clean", value=0.97)
+            f_degrad = st.number_input("Degradation, f_degrad", value=0.99)
+            f_unshade = st.number_input("Shading, f_unshade", value=0.98)
+            eta_cable = st.number_input("Cable efficiency, η_cable", value=0.98)
+            eta_inv = st.number_input("Inverter efficiency, η_inv", value=0.96)
             peak_sun_hours = st.number_input("Peak Sun Hours (h/day)", value=4.0)
 
 
     st.markdown("---")
 
     # -------------------------------------------------
-    # AUTO CALC RESULTS IN A BOX
+    # AUTO CALCULATIONS
     # -------------------------------------------------
     panel_area = panel_length * panel_width
     f_temp_ave = 1 + ((T_coef / 100) * (T_mod - T_src))
@@ -151,6 +166,9 @@ elif st.session_state.page == "dimensioning":
         * eta_inv
     ) / panel_area
 
+    # Convert Wh → kWh
+    yearly_energy_kwh = yearly_energy / 1000
+
     st.markdown(
         """
         <div style="padding:15px; border-radius:10px; background-color:#eef7f2; border-left:6px solid #28a745;">
@@ -159,9 +177,6 @@ elif st.session_state.page == "dimensioning":
         """,
         unsafe_allow_html=True
     )
-
-    # Convert Wh → kWh
-    yearly_energy_kwh = yearly_energy / 1000
 
     st.subheader("Calculated Results")
     colA, colB = st.columns(2)
@@ -177,7 +192,7 @@ elif st.session_state.page == "dimensioning":
     st.markdown("---")
 
     # -------------------------------------------------
-    # STEP 2 FORMAL BOX
+    # STEP 2: ARCHITECTURE CONSTRAINT
     # -------------------------------------------------
     st.markdown(
         """
@@ -200,7 +215,7 @@ elif st.session_state.page == "dimensioning":
 
     with colY:
         st.markdown("### 📏 Site Layout")
-        delta = st.number_input("Inter-module gap, ∆ (m)", value=0.01)
+        delta = st.number_input("Inter-module gap, ∆ (m)", value=0.02)
         site_width = st.number_input("Width of Site (m)", min_value=1.0, value=20.0)
         site_length = st.number_input("Length of Site (m)", min_value=1.0, value=30.0)
 
@@ -291,4 +306,3 @@ elif st.session_state.page == "dimensioning":
 
     with colF2:
         st.metric("Total Yearly Energy (kWh/year)", f"{final_yearly_energy_total:,.2f}")
-
