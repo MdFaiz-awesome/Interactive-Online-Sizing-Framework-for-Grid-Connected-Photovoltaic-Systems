@@ -284,7 +284,7 @@ elif st.session_state.page == "dimensioning":
     st.markdown("---")
 
     # FINAL SYSTEM PERFORMANCE
-    final_peak_power_output_total = power_output * best_count
+    final_power_output_total = power_output * best_count
     final_yearly_energy_total = yearly_energy_kwh * best_count
 
     st.markdown(
@@ -302,7 +302,7 @@ elif st.session_state.page == "dimensioning":
     colF1, colF2 = st.columns(2)
 
     with colF1:
-        st.metric("Total Power Output (W)", f"{final_power_output_total:,.2f}")
+        st.metric("Total Peak Power Output (W)", f"{final_power_output_total:,.2f}")
 
     with colF2:
         st.metric("Total Yearly Energy (kWh/year)", f"{final_yearly_energy_total:,.2f}")
