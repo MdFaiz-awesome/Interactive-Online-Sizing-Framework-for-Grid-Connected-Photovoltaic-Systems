@@ -27,7 +27,7 @@ def switch_to_dimensioning():
 # -----------------------------------------------------
 def apply_background():
     try:
-        with open("bg.jpg", "rb") as img_file:
+        with open("bg.png", "rb") as img_file:
             encoded = base64.b64encode(img_file.read()).decode()
             st.markdown(
                 f"""
