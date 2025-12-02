@@ -284,7 +284,7 @@ elif st.session_state.page == "dimensioning":
     st.markdown("---")
 
     # FINAL SYSTEM PERFORMANCE
-    final_power_output_total = power_output * best_count
+    final_peak_power_output_total = power_output * best_count
     final_yearly_energy_total = yearly_energy_kwh * best_count
 
     st.markdown(
