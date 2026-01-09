@@ -118,25 +118,25 @@ elif st.session_state.page == "dimensioning":
         # LEFT COLUMN
         with col1:
             st.markdown("### 🟦 Module Properties")
-            panel_length = st.number_input("Panel Length (m)", min_value=0.1, value=1.7)
-            panel_width = st.number_input("Panel Width (m)", min_value=0.1, value=1.1)
-            rated_power = st.number_input("Rated Power (W)", min_value=1, value=550)
-            isc_stc = st.number_input("Isc STC (A)", min_value=0.1, value=13.0)
+            panel_length = st.number_input("Panel Length (m)", min_value=0.1, value=2.382)
+            panel_width = st.number_input("Panel Width (m)", min_value=0.1, value=1.134)
+            rated_power = st.number_input("Rated Power (W)", min_value=1, value=605)
+            isc_stc = st.number_input("Isc STC (A)", min_value=0.1, value=9.6)
             isc_max_inv = st.number_input("Isc Max Inv (A)", min_value=0.1, value=15.0)
 
         # RIGHT COLUMN
         with col2:
             st.markdown("### 🟩 Temperature & Performance Factors")
-            T_coef = st.number_input("Temperature Coefficient (°C)", value=-0.35)
-            T_mod = st.number_input("Module Temperature (°C)", value=45)
+            T_coef = st.number_input("Temperature Coefficient (°C)", value=-0.28)
+            T_mod = st.number_input("Module Temperature (°C)", value=55)
             T_src = st.number_input("Reference Temperature (°C)", value=25)
 
             f_mm = st.number_input("Module mismatch, f_mm", value=0.98)
             f_clean = st.number_input("Soiling, f_clean", value=0.97)
-            f_degrad = st.number_input("Degradation, f_degrad", value=0.99)
-            f_unshade = st.number_input("Shading, f_unshade", value=0.98)
+            f_degrad = st.number_input("Degradation, f_degrad", value=0.97)
+            f_unshade = st.number_input("Shading, f_unshade", value=0.97)
             eta_cable = st.number_input("Cable efficiency, η_cable", value=0.98)
-            eta_inv = st.number_input("Inverter efficiency, η_inv", value=0.96)
+            eta_inv = st.number_input("Inverter efficiency, η_inv", value=0.99)
             peak_sun_hours = st.number_input("Peak Sun Hours (h/day)", value=4.0)
 
     st.markdown("---")
@@ -204,9 +204,9 @@ elif st.session_state.page == "dimensioning":
         Lm = st.number_input("Length of Module, Lm (m)", value=panel_length)
     with colY:
         st.markdown("### 📏 Site Layout")
-        delta = st.number_input("Inter-module gap, ∆ (m)", value=0.02)
-        site_width = st.number_input("Width of Site (m)", min_value=1.0, value=20.0)
-        site_length = st.number_input("Length of Site (m)", min_value=1.0, value=30.0)
+        delta = st.number_input("Inter-module gap, ∆ (m)", value=0.01)
+        site_width = st.number_input("Width of Site (m)", min_value=1.0, value=45.74)
+        site_length = st.number_input("Length of Site (m)", min_value=1.0, value=115.88)
 
     st.markdown("---")
     orientation = st.selectbox("PV Installation Orientation", ["Landscape", "Portrait"])
@@ -321,7 +321,7 @@ if st.session_state.get("page") == "part_b":
         </div>
         """, unsafe_allow_html=True
     )
-    dc_ac_ratio = st.number_input("Enter DC/AC Ratio (fi)", value=1.2)
+    dc_ac_ratio = st.number_input("Enter DC/AC Ratio (fi)", value=1.11)
 
     # =====================================================
     # STEP 2: Determine The Suitable Inverter
@@ -353,20 +353,20 @@ if st.session_state.get("page") == "part_b":
     )
     col1, col2 = st.columns(2)
     with col1:
-        voc_stc = st.number_input("V_oc STC (V)", value=45.0)
-        vp_stc = st.number_input("V_p STC (V)", value=37.0)
-        beta_voc = st.number_input("Beta Voc (%/°C)", value=-0.35)
+        voc_stc = st.number_input("V_oc STC (V)", value=48.18)
+        vp_stc = st.number_input("V_p STC (V)", value=40.31)
+        beta_voc = st.number_input("Beta Voc (%/°C)", value=-0.23)
         beta_vpmax = st.number_input("Beta Vpmax (%/°C)", value=-0.3)
-        t_mod_min = st.number_input("T_mod min (°C)", value=-5)
-        t_mod_max = st.number_input("T_mod max (°C)", value=50)
+        t_mod_min = st.number_input("T_mod min (°C)", value=25)
+        t_mod_max = st.number_input("T_mod max (°C)", value=75)
         t_stc = 25
     with col2:
-        v_max_abs_inv = st.number_input("Inverter V_max-abs-inv (V)", value=600)
-        v_max_mppt_inv = st.number_input("Inverter V_max-mppt-inv (V)", value=500)
-        v_sys_max = st.number_input("Module V_sys-max (V)", value=550)
-        v_min_mppt_inv = st.number_input("Inverter V_min-mppt-inv (V)", value=150)
-        v_start_inv = st.number_input("V_start-inv (V)", value=200)
-        efficiency = st.number_input("Efficiency", value=0.96)
+        v_max_abs_inv = st.number_input("Inverter V_max-abs-inv (V)", value=1500)
+        v_max_mppt_inv = st.number_input("Inverter V_max-mppt-inv (V)", value=1500)
+        v_sys_max = st.number_input("Module V_sys-max (V)", value=1500)
+        v_min_mppt_inv = st.number_input("Inverter V_min-mppt-inv (V)", value=938)
+        v_start_inv = st.number_input("V_start-inv (V)", value=950)
+        efficiency = st.number_input("Efficiency", value=0.99)
 
     # Formula untuk Ns_max & Ns_min
     voc_max = voc_stc * (1 + (beta_voc / 100) * (t_mod_min - t_stc))
@@ -396,9 +396,9 @@ if st.session_state.get("page") == "part_b":
         </div>
         """, unsafe_allow_html=True
     )
-    vrated_inv = st.number_input("Inverter Vrated (V)", value=400)
-    vmax_mppt_inv = st.number_input("Vmax_mppt-inv (V)", value=500)
-    vmin_mppt_inv = st.number_input("Vmin_mppt-inv (V)", value=150)
+    vrated_inv = st.number_input("Inverter Vrated (V)", value=1100)
+    vmax_mppt_inv = st.number_input("Vmax_mppt-inv (V)", value=1500)
+    vmin_mppt_inv = st.number_input("Vmin_mppt-inv (V)", value=938)
 
     w_percent = ((vrated_inv - vmin_mppt_inv) / (vmax_mppt_inv - vmin_mppt_inv)) * 100
     ns_rec = math.floor(ns_min + (w_percent / 100) * (ns_max - ns_min))
@@ -416,8 +416,8 @@ if st.session_state.get("page") == "part_b":
             <h4>Key Parameters for Maximum String Calculation</h4>
         </div>
         """, unsafe_allow_html=True)
-    isc_max_mppt = st.number_input("Isc_max-mppt (A)", value=13.0)
-    isc_stc = st.number_input("Isc_STC (A)", value=13.0)
+    isc_max_mppt = st.number_input("Isc_max-mppt (A)", value=9.6)
+    isc_stc = st.number_input("Isc_STC (A)", value=15.0)
     sf1 = st.number_input("Safety Factor (Sf1)", value=1.25)
     np_max_mppt = math.floor(isc_max_mppt / (isc_stc * sf1))
     st.info(f"Final Maximum Strings Result = {np_max_mppt}")
