@@ -224,24 +224,17 @@ elif st.session_state.page == "dimensioning":
     with colF2:
         st.metric("Total Yearly Energy (kWh/year)", f"{final_yearly_energy_total:,.2f}")
 
-    # =====================================================
-    # BUTTON KE PART B
-    # =====================================================
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("➡️ Go to Part B: Sizing with Central Inverter", use_container_width=True):
-        st.session_state.best_count = best_count
-        st.session_state.final_power_output_total = final_power_output_total
-        st.session_state.yearly_energy_kwh = final_yearly_energy_total
-        st.session_state.rated_power = rated_power
-        st.session_state.page = "part_b"
-        st.rerun()
-
-# =====================================================
+   # =====================================================
 # PART B: SIZING WITH CENTRAL INVERTER
 # =====================================================
 if st.session_state.get("page") == "part_b":
     st.markdown("<h1 style='text-align:center;'>Part B: Sizing with Central Inverter</h1>", unsafe_allow_html=True)
     st.markdown("---")
+
+    # BUTTON BACK TO PART A
+    if st.button("⬅️ Back to Part A", use_container_width=True):
+        st.session_state.page = "dimensioning"
+        st.rerun()
 
     # AMBIL DATA DARI PART A
     best_count = st.session_state.get("best_count", 0)
@@ -252,107 +245,161 @@ if st.session_state.get("page") == "part_b":
     # =========================
     # SUMMARY OF PART A
     # =========================
-    st.markdown("### Summary of Part A")
-    st.metric("Total PV Modules", f"{best_count}")
-    st.metric("Total Peak Power Output (W)", f"{final_power_output_total:,.2f}")
-    st.metric("Total Yearly Energy (kWh/year)", f"{yearly_energy_kwh:,.2f}")
+    st.markdown(
+        """
+        <div style="padding:15px; border-radius:10px; 
+        background-color:#eef7f2; border-left:6px solid #28a745;">
+            <h2>Summary of Part A</h2>
+        </div>
+        """, unsafe_allow_html=True
+    )
+    colA, colB, colC = st.columns(3)
+    with colA:
+        st.metric("Total PV Modules", f"{best_count}")
+    with colB:
+        st.metric("Total Peak Power Output (W)", f"{final_power_output_total:,.2f}")
+    with colC:
+        st.metric("Total Yearly Energy (kWh/year)", f"{yearly_energy_kwh:,.2f}")
     st.markdown("---")
 
-    # ======= PART B STEPS DARI SEBELUM =========
-    # [STEP 1 hingga STEP 8 ikut coding saya hantar sebelum ini]
-    # (boleh copy paste coding Part B yang saya tulis sebelum ini)
-
-    # =========================
+    # =====================================================
     # STEP 1: Decide DC/AC Ratio
-    # =========================
-    st.markdown("### Step 1: Decide DC/AC Ratio")
-    fi = st.number_input("Enter DC/AC Ratio (fi)", min_value=0.1, value=1.1)
+    # =====================================================
+    st.markdown(
+        """
+        <div style="padding:15px; border-radius:10px; 
+        background-color:#f7f9fc; border-left:6px solid #4A90E2;">
+            <h2>Step 1: Decide DC/AC Ratio</h2>
+        </div>
+        """, unsafe_allow_html=True
+    )
+    dc_ac_ratio = st.number_input("Enter DC/AC Ratio (fi)", value=1.2)
 
-    # =========================
+    # =====================================================
     # STEP 2: Determine The Suitable Inverter
-    # =========================
-    st.markdown("### Step 2: Determine The Suitable Inverter")
-    st.write("Enter the following parameters:")
-    num_modules = st.number_input("Number of PV Modules", min_value=1, value=best_count)
-    pv_power = st.number_input("PV Module Power (W)", min_value=1, value=rated_power)
-    P_inv_required = (pv_power * num_modules) / fi
-    st.metric("Required Inverter Nominal Power (W)", f"{P_inv_required:,.2f}")
+    # =====================================================
+    st.markdown(
+        """
+        <div style="padding:15px; border-radius:10px; 
+        background-color:#f7f9fc; border-left:6px solid #4A90E2;">
+            <h2>Step 2: Determine The Suitable Inverter</h2>
+        </div>
+        """, unsafe_allow_html=True
+    )
+    num_pv_modules = st.number_input("Enter Number of PV Modules", value=best_count)
+    pv_module_power = st.number_input("Enter PV Module Power (W)", value=rated_power)
+    req_inv_power = (pv_module_power * num_pv_modules) / dc_ac_ratio
+    st.success(f"Required Inverter Nominal Power > {req_inv_power:,.2f} W")
 
-    # =========================
-    # STEP 3 & 4: Determine String Sizing Range (Ns min & Ns max)
-    # =========================
-    st.markdown("### Step 3 & 4: Determine String Sizing Range (Ns min & Ns max)")
-    st.markdown("#### Module and Inverter Datasheet Parameter")
+    # =====================================================
+    # STEP 3 & 4: Determine String Sizing Range
+    # =====================================================
+    st.markdown(
+        """
+        <div style="padding:15px; border-radius:10px; 
+        background-color:#fff8e6; border-left:6px solid #f5a623;">
+            <h2>Step 3 & 4: Determine String Sizing Range (Ns min & Ns max)</h2>
+            <h4>Module and Inverter Datasheet Parameter</h4>
+        </div>
+        """, unsafe_allow_html=True
+    )
     col1, col2 = st.columns(2)
     with col1:
-        Voc_STC = st.number_input("V_oc STC (V)", value=42.0)
-        Vp_STC = st.number_input("V_p STC (V)", value=35.0)
-        beta_Voc = st.number_input("Beta V_oc (%/°C)", value=-0.3)
-        beta_Vpmax = st.number_input("Beta V_pmax (%/°C)", value=-0.25)
-        T_mod_min = st.number_input("T_mod min (°C)", value=0)
-        T_mod_max = st.number_input("T_mod max (°C)", value=50)
-        T_STC = 25
+        voc_stc = st.number_input("V_oc STC (V)", value=45.0)
+        vp_stc = st.number_input("V_p STC (V)", value=37.0)
+        beta_voc = st.number_input("Beta Voc (%/°C)", value=-0.35)
+        beta_vpmax = st.number_input("Beta Vpmax (%/°C)", value=-0.3)
+        t_mod_min = st.number_input("T_mod min (°C)", value=-5)
+        t_mod_max = st.number_input("T_mod max (°C)", value=50)
+        t_stc = 25
     with col2:
-        V_max_abs_inv = st.number_input("Inverter V_max-abs-inv (V)", value=1000)
-        V_max_mppt_inv = st.number_input("Inverter V_max-mppt-inv (V)", value=850)
-        V_sys_max = st.number_input("Module V_sys-max (V)", value=1000)
-        V_min_mppt_inv = st.number_input("Inverter V_min-mppt-inv (V)", value=200)
-        V_start_inv = st.number_input("V_start-inv (V)", value=250)
-        efficiency = st.number_input("Efficiency", value=0.95)
+        v_max_abs_inv = st.number_input("Inverter V_max-abs-inv (V)", value=600)
+        v_max_mppt_inv = st.number_input("Inverter V_max-mppt-inv (V)", value=500)
+        v_sys_max = st.number_input("Module V_sys-max (V)", value=550)
+        v_min_mppt_inv = st.number_input("Inverter V_min-mppt-inv (V)", value=150)
+        v_start_inv = st.number_input("V_start-inv (V)", value=200)
+        efficiency = st.number_input("Efficiency", value=0.96)
 
-    Voc_max = Voc_STC * (1 + (beta_Voc / 100) * (T_mod_min - T_STC))
-    Ns_max_abs = math.floor(V_max_abs_inv / Voc_max)
-    Vpmax_max = Vp_STC * (1 + (beta_Vpmax / 100) * (T_mod_min - T_STC))
-    Ns_max_mppt = math.floor(V_max_mppt_inv / Vpmax_max)
-    Ns_max_pv = math.floor(V_sys_max / Voc_max)
-    Ns_max = min(Ns_max_abs, Ns_max_mppt, Ns_max_pv)
+    # Formula untuk Ns_max & Ns_min
+    voc_max = voc_stc * (1 + (beta_voc / 100) * (t_mod_min - t_stc))
+    ns_max_abs = math.floor(v_max_abs_inv / voc_max)
+    vpmax_max = vp_stc * (1 + (beta_vpmax / 100) * (t_mod_min - t_stc))
+    ns_max_mppt = math.floor(v_max_mppt_inv / vpmax_max)
+    ns_max_pv = math.floor(v_sys_max / voc_max)
+    ns_max = min(ns_max_abs, ns_max_mppt, ns_max_pv)
 
-    Vpmax_min = Vp_STC * (1 + (beta_Vpmax / 100) * (T_mod_max - T_STC))
-    Ns_min_mppt = math.ceil(V_min_mppt_inv / (Vpmax_min * efficiency))
-    Voc_min = Voc_STC * (1 + (beta_Voc / 100) * (T_mod_max - T_STC))
-    Ns_min_start = math.ceil(V_start_inv / Voc_min)
-    Ns_min = max(Ns_min_mppt, Ns_min_start)
+    vpmax_min = vp_stc * (1 + (beta_vpmax / 100) * (t_mod_max - t_stc))
+    ns_min_mppt = math.ceil(v_min_mppt_inv / (vpmax_min * efficiency))
+    voc_min = voc_stc * (1 + (beta_voc / 100) * (t_mod_max - t_stc))
+    ns_min_start = math.ceil(v_start_inv / voc_min)
+    ns_min = max(ns_min_mppt, ns_min_start)
 
-    st.success(f"Final Ns_max: {Ns_max} | Final Ns_min: {Ns_min} | Range for String Sizing: {Ns_min}-{Ns_max}")
+    st.info(f"Final Ns_max = {ns_max}  |  Final Ns_min = {ns_min}  |  Range for String Sizing = {ns_min} - {ns_max}")
 
-    # =========================
-    # STEP 5: Determine The Optimum PV Modules in Series (Ns_rec)
-    # =========================
-    st.markdown("### Step 5: Determine The Optimum PV Modules in Series (Ns_rec)")
-    st.markdown("#### Key Parameter For Optimum Calculation")
-    Vrated = st.number_input("Inverter Vrated (V)", value=600)
-    Vmax_mppt_inv = st.number_input("Vmax_mppt-inv (V)", value=850)
-    Vmin_mppt_inv = st.number_input("Vmin_mppt-inv (V)", value=200)
-    W_percent = ((Vrated - Vmin_mppt_inv) / (Vmax_mppt_inv - Vmin_mppt_inv)) * 100
-    Ns_rec = math.floor(Ns_min + (W_percent/100)*(Ns_max-Ns_min))
-    st.metric("W% result", f"{W_percent:.2f}%")
-    st.metric("Recommendation Modules Result (Ns_rec)", f"{Ns_rec}")
+    # =====================================================
+    # STEP 5: Determine Optimum PV Modules in Series (Ns_rec)
+    # =====================================================
+    st.markdown(
+        """
+        <div style="padding:15px; border-radius:10px; 
+        background-color:#f7f9fc; border-left:6px solid #4A90E2;">
+            <h2>Step 5: Determine the Optimum PV Modules in Series (Ns_rec)</h2>
+            <h4>Key Parameter for Optimum Calculation</h4>
+        </div>
+        """, unsafe_allow_html=True
+    )
+    vrated_inv = st.number_input("Inverter Vrated (V)", value=400)
+    vmax_mppt_inv = st.number_input("Vmax_mppt-inv (V)", value=500)
+    vmin_mppt_inv = st.number_input("Vmin_mppt-inv (V)", value=150)
 
-    # =========================
-    # STEP 6: Determine the Maximum Number of String per MPPT (Np_max per MPPT)
-    # =========================
-    st.markdown("### Step 6: Determine the Maximum Number of String per MPPT (Np_max per MPPT)")
-    st.markdown("#### Key Parameters for Maximum String Calculation")
-    Isc_max_mppt = st.number_input("Isc_max-mppt (A)", value=15.0)
-    Isc_STC_input = st.number_input("Isc_STC (A)", value=13.0)
-    Sf1 = 1.25
-    Np_max_per_MPPT = math.floor(Isc_max_mppt / (Isc_STC_input * Sf1))
-    st.metric("Final Maximum Strings Result", f"{Np_max_per_MPPT}")
+    w_percent = ((vrated_inv - vmin_mppt_inv) / (vmax_mppt_inv - vmin_mppt_inv)) * 100
+    ns_rec = math.floor(ns_min + (w_percent / 100) * (ns_max - ns_min))
 
-    # =========================
-    # STEP 7: Determine the Number of Strings per MPPT
-    # =========================
-    st.markdown("### Step 7: Determine the Number of Strings per MPPT")
-    st.markdown("#### Inverter and Array Configuration Parameters")
-    Nt = st.number_input("Total PV Modules per Inverter (Nt)", value=best_count)
-    Nmppt = Ns_rec
-    strings_per_MPPT = math.ceil(Nt / Ns_rec)
-    st.metric("Result Configuration", f"{strings_per_MPPT}")
+    st.info(f"W% Result = {w_percent:.2f}%  |  Recommendation Modules Result (Ns_rec) = {ns_rec}")
 
-    # =========================
+    # =====================================================
+    # STEP 6: Maximum Number of Strings per MPPT
+    # =====================================================
+    st.markdown(
+        """
+        <div style="padding:15px; border-radius:10px; 
+        background-color:#fff8e6; border-left:6px solid #f5a623;">
+            <h2>Step 6: Determine the Maximum Number of Strings per MPPT</h2>
+            <h4>Key Parameters for Maximum String Calculation</h4>
+        </div>
+        """, unsafe_allow_html=True)
+    isc_max_mppt = st.number_input("Isc_max-mppt (A)", value=13.0)
+    isc_stc = st.number_input("Isc_STC (A)", value=13.0)
+    sf1 = st.number_input("Safety Factor (Sf1)", value=1.25)
+    np_max_mppt = math.floor(isc_max_mppt / (isc_stc * sf1))
+    st.info(f"Final Maximum Strings Result = {np_max_mppt}")
+
+    # =====================================================
+    # STEP 7: Number of Strings per MPPT
+    # =====================================================
+    st.markdown(
+        """
+        <div style="padding:15px; border-radius:10px; 
+        background-color:#f7f9fc; border-left:6px solid #4A90E2;">
+            <h2>Step 7: Determine the Number of Strings per MPPT</h2>
+            <h4>Inverter and Array Configuration Parameters</h4>
+        </div>
+        """, unsafe_allow_html=True)
+    nt = st.number_input("Total PV Modules per Inverter (Nt)", value=best_count)
+    nmppt = ns_rec
+    result_config = math.ceil(nt / nmppt)
+    st.info(f"Result Configuration = {result_config}")
+
+    # =====================================================
     # STEP 8: Final PV Array Configuration
-    # =========================
-    st.markdown("### Step 8: Final PV Array Configuration")
-    st.markdown("#### Final Configuration Summary")
-    st.metric("Total Strings Required", f"{strings_per_MPPT}")
-    st.metric("Selected Modules in Series", f"{Ns_rec}")
+    # =====================================================
+    st.markdown(
+        """
+        <div style="padding:15px; border-radius:10px; 
+        background-color:#eef7f2; border-left:6px solid #28a745;">
+            <h2>Step 8: Final PV Array Configuration</h2>
+            <h4>Final Configuration Summary</h4>
+        </div>
+        """, unsafe_allow_html=True)
+    st.success(f"Total Strings Required = {result_config}  |  Selected Modules in Series = {ns_rec}")
+Modules in Series", f"{Ns_rec}")
