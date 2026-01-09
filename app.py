@@ -21,8 +21,11 @@ if "page" not in st.session_state:
 def switch_to_dimensioning():
     st.session_state.page = "dimensioning"
 
+def switch_to_part_b():
+    st.session_state.page = "part_b"
+
 # -----------------------------------------------------
-# SET FIXED BACKGROUND IMAGE (SAFE LOAD) ONLY HOME PAGE
+# SET FIXED BACKGROUND IMAGE (ONLY FOR HOME PAGE)
 # -----------------------------------------------------
 def apply_background():
     try:
@@ -78,6 +81,7 @@ if st.session_state.page == "welcome":
 
     st.markdown("<br><br>", unsafe_allow_html=True)
 
+    # START BUTTON
     if st.button("👉 Start Sizing Tool", use_container_width=True):
         with st.spinner("Loading PV Sizing Dashboard..."):
             time.sleep(2)
@@ -94,7 +98,7 @@ elif st.session_state.page == "dimensioning":
     st.markdown("---")
 
     # -------------------------------------------------
-    # STEP 1: Module Properties & Performance
+    # STEP 1 (BOX DESIGN)
     # -------------------------------------------------
     st.markdown(
         """
@@ -103,12 +107,15 @@ elif st.session_state.page == "dimensioning":
             <h2>Step 1: Choose a PV Module</h2>
             <p>Insert the module characteristics and performance factors below.</p>
         </div>
-        """, unsafe_allow_html=True
+        """,
+        unsafe_allow_html=True
     )
     st.markdown("<br>", unsafe_allow_html=True)
 
     with st.container():
         col1, col2 = st.columns(2)
+
+        # LEFT COLUMN
         with col1:
             st.markdown("### 🟦 Module Properties")
             panel_length = st.number_input("Panel Length (m)", min_value=0.1, value=1.7)
@@ -116,11 +123,14 @@ elif st.session_state.page == "dimensioning":
             rated_power = st.number_input("Rated Power (W)", min_value=1, value=550)
             isc_stc = st.number_input("Isc STC (A)", min_value=0.1, value=13.0)
             isc_max_inv = st.number_input("Isc Max Inv (A)", min_value=0.1, value=15.0)
+
+        # RIGHT COLUMN
         with col2:
             st.markdown("### 🟩 Temperature & Performance Factors")
             T_coef = st.number_input("Temperature Coefficient (°C)", value=-0.35)
             T_mod = st.number_input("Module Temperature (°C)", value=45)
             T_src = st.number_input("Reference Temperature (°C)", value=25)
+
             f_mm = st.number_input("Module mismatch, f_mm", value=0.98)
             f_clean = st.number_input("Soiling, f_clean", value=0.97)
             f_degrad = st.number_input("Degradation, f_degrad", value=0.99)
@@ -129,13 +139,29 @@ elif st.session_state.page == "dimensioning":
             eta_inv = st.number_input("Inverter efficiency, η_inv", value=0.96)
             peak_sun_hours = st.number_input("Peak Sun Hours (h/day)", value=4.0)
 
+    st.markdown("---")
+
     # -------------------------------------------------
-    # AUTO CALCULATIONS PART A
+    # AUTO CALCULATIONS
     # -------------------------------------------------
     panel_area = panel_length * panel_width
     f_temp_ave = 1 + ((T_coef / 100) * (T_mod - T_src))
+
     power_output = (rated_power * f_mm * f_temp_ave * f_degrad) / panel_area
-    yearly_energy = ((peak_sun_hours*365) * rated_power * f_mm * f_temp_ave * f_clean * f_degrad * f_unshade * eta_cable * eta_inv)/panel_area
+
+    yearly_energy = (
+        (peak_sun_hours * 365)
+        * rated_power
+        * f_mm
+        * f_temp_ave
+        * f_clean
+        * f_degrad
+        * f_unshade
+        * eta_cable
+        * eta_inv
+    ) / panel_area
+
+    # Convert Wh → kWh
     yearly_energy_kwh = yearly_energy / 1000
 
     st.markdown(
@@ -143,7 +169,8 @@ elif st.session_state.page == "dimensioning":
         <div style="padding:15px; border-radius:10px; background-color:#eef7f2; border-left:6px solid #28a745;">
             <h2>Calculated Module Performance</h2>
         </div>
-        """, unsafe_allow_html=True
+        """,
+        unsafe_allow_html=True
     )
 
     colA, colB = st.columns(2)
@@ -157,7 +184,7 @@ elif st.session_state.page == "dimensioning":
     st.markdown("---")
 
     # -------------------------------------------------
-    # STEP 2: Architecture Constraint
+    # STEP 2: ARCHITECTURE CONSTRAINT
     # -------------------------------------------------
     st.markdown(
         """
@@ -166,7 +193,8 @@ elif st.session_state.page == "dimensioning":
             <h2>Step 2: Architecture Constraint</h2>
             <p>Determine the maximum installable number of modules based on site geometry.</p>
         </div>
-        """, unsafe_allow_html=True
+        """,
+        unsafe_allow_html=True
     )
 
     colX, colY = st.columns(2)
@@ -180,6 +208,7 @@ elif st.session_state.page == "dimensioning":
         site_width = st.number_input("Width of Site (m)", min_value=1.0, value=20.0)
         site_length = st.number_input("Length of Site (m)", min_value=1.0, value=30.0)
 
+    st.markdown("---")
     orientation = st.selectbox("PV Installation Orientation", ["Landscape", "Portrait"])
     if orientation == "Landscape":
         N_up = math.floor(site_width / (Wm + delta))
@@ -188,26 +217,34 @@ elif st.session_state.page == "dimensioning":
         N_up = math.floor(site_width / (Lm + delta))
         N_across = math.floor(site_length / (Wm + delta))
     N_max = N_up * N_across
-    st.success(f"### 📊 Orientation: **{orientation}**\n- Modules Upwards: **{N_up}**  \n- Modules Across: **{N_across}**  \n- **Total Installable PV Modules: {N_max}**")
 
-    # -------------------------------------------------
-    # STEP 3: Best Orientation & Final System Performance
-    # -------------------------------------------------
+    st.success(
+        f"### 📊 Orientation: **{orientation}**\n- Modules Upwards: **{N_up}**  \n- Modules Across: **{N_across}**  \n- **Total Installable PV Modules: {N_max}**"
+    )
+
+    # =====================================================
+    # STEP 3: BEST ORIENTATION & FINAL SYSTEM PERFORMANCE
+    # =====================================================
     N_landscape_up = math.floor(site_width / (Wm + delta))
     N_landscape_across = math.floor(site_length / (Lm + delta))
     N_landscape = N_landscape_up * N_landscape_across
     N_portrait_up = math.floor(site_width / (Lm + delta))
     N_portrait_across = math.floor(site_length / (Wm + delta))
     N_portrait = N_portrait_up * N_portrait_across
+
     if N_landscape >= N_portrait:
-        best_count = N_landscape
         best_orientation = "Landscape"
+        best_count = N_landscape
     else:
-        best_count = N_portrait
         best_orientation = "Portrait"
+        best_count = N_portrait
+
+    st.info(
+        f"### 🏆 Recommended Orientation: **{best_orientation}**\n- Maximum installable PV modules: **{best_count}**"
+    )
+
     final_power_output_total = power_output * best_count
     final_yearly_energy_total = yearly_energy_kwh * best_count
-    st.info(f"### 🏆 Recommended Orientation: **{best_orientation}**\n- Maximum installable PV modules: **{best_count}**")
 
     st.markdown(
         """
@@ -218,13 +255,31 @@ elif st.session_state.page == "dimensioning":
         </div>
         """, unsafe_allow_html=True
     )
+
     colF1, colF2 = st.columns(2)
     with colF1:
         st.metric("Total Power Output (W)", f"{final_power_output_total:,.2f}")
     with colF2:
         st.metric("Total Yearly Energy (kWh/year)", f"{final_yearly_energy_total:,.2f}")
 
-   # =====================================================
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("👉 Continue to Part B", use_container_width=True):
+        # Save Part A results for Part B
+        st.session_state.best_count = best_count
+        st.session_state.final_power_output_total = final_power_output_total
+        st.session_state.yearly_energy_kwh = final_yearly_energy_total
+        st.session_state.rated_power = rated_power
+        st.session_state.page = "part_b"
+        st.rerun()
+
+# =====================================================
+# PAGE 3: PART B
+# =====================================================
+elif st.session_state.page == "part_b":
+    # MASUKKAN CODE PART B YANG SAYA BUATKAN SEBELUM INI
+    # (Part B lengkap dengan semua Step 1-8, styling sama Part A, Back to Part A button)
+    exec(open("part_b_code.py").read())  # contoh modular, atau letakkan terus code Part B di sini
+# =====================================================
 # PART B: SIZING WITH CENTRAL INVERTER
 # =====================================================
 if st.session_state.get("page") == "part_b":
@@ -402,4 +457,3 @@ if st.session_state.get("page") == "part_b":
         </div>
         """, unsafe_allow_html=True)
     st.success(f"Total Strings Required = {result_config}  |  Selected Modules in Series = {ns_rec}")
-Modules in Series", f"{Ns_rec}")
