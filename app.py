@@ -3,61 +3,73 @@ import math
 import time
 import base64
 
-# -----------------------------------------------------
+# =====================================================
 # PAGE CONFIG
-# -----------------------------------------------------
+# =====================================================
 st.set_page_config(
     page_title="PV Sizing Tool",
     page_icon="🔆",
     layout="wide"
 )
 
-# -----------------------------------------------------
-# SESSION STATE INITIALIZATION
-# -----------------------------------------------------
+# =====================================================
+# SESSION STATE
+# =====================================================
 if "page" not in st.session_state:
     st.session_state.page = "welcome"
 
-# Storage from Part A → Part B
-for key in [
-    "total_modules",
-    "total_power",
-    "total_energy"
-]:
+for key in ["total_modules", "total_power", "total_energy"]:
     if key not in st.session_state:
         st.session_state[key] = None
 
 
-def go_to_part_a():
-    st.session_state.page = "part_a"
+def go(page):
+    st.session_state.page = page
+    st.rerun()
 
 
-def go_to_part_b():
-    st.session_state.page = "part_b"
-
-
-# -----------------------------------------------------
-# BACKGROUND IMAGE (SAFE LOAD)
-# -----------------------------------------------------
+# =====================================================
+# BACKGROUND IMAGE
+# =====================================================
 def apply_background():
     try:
-        with open("bg.png", "rb") as img_file:
-            encoded = base64.b64encode(img_file.read()).decode()
-            st.markdown(
-                f"""
-                <style>
-                .stApp {{
-                    background-image: url("data:image/png;base64,{encoded}");
-                    background-size: cover;
-                    background-position: center;
-                    background-attachment: fixed;
-                }}
-                </style>
-                """,
-                unsafe_allow_html=True
-            )
+        with open("bg.png", "rb") as f:
+            encoded = base64.b64encode(f.read()).decode()
+        st.markdown(
+            f"""
+            <style>
+            .stApp {{
+                background-image: url("data:image/png;base64,{encoded}");
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
     except:
         pass
+
+
+# =====================================================
+# UI HELPERS
+# =====================================================
+def section_box(title, subtitle="", color="#4A90E2"):
+    st.markdown(
+        f"""
+        <div style="
+            padding:18px;
+            background:#f9fafc;
+            border-left:6px solid {color};
+            border-radius:10px;
+            margin-bottom:20px;">
+            <h3>{title}</h3>
+            <p style="margin-bottom:0;">{subtitle}</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 
 # =====================================================
@@ -69,11 +81,16 @@ if st.session_state.page == "welcome":
 
     st.markdown(
         """
-        <div style="text-align:center; padding:40px;
-        background:rgba(255,255,255,0.88);
-        border-radius:12px;">
-            <h1>Interactive Online Sizing Framework for Grid-Connected PV Systems</h1>
-            <p>Professional PV system sizing tool for large-scale design.</p>
+        <div style="
+        text-align:center;
+        padding:45px;
+        background:rgba(255,255,255,0.9);
+        border-radius:14px;">
+            <h1>Interactive Online Sizing Framework</h1>
+            <h3>for Grid-Connected Photovoltaic Systems</h3>
+            <p style="font-size:18px;">
+                Professional engineering tool for large-scale PV system design
+            </p>
         </div>
         """,
         unsafe_allow_html=True
@@ -81,25 +98,25 @@ if st.session_state.page == "welcome":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    if st.button("👉 Start Sizing Tool", use_container_width=True):
-        with st.spinner("Loading dashboard..."):
-            time.sleep(1.5)
-        go_to_part_a()
-        st.rerun()
+    if st.button("🚀 Start PV Sizing Tool", use_container_width=True):
+        with st.spinner("Initializing system..."):
+            time.sleep(1.2)
+        go("part_a")
 
 
 # =====================================================
-# PAGE 2: PART A – PV MODULE & SITE SIZING
+# PAGE 2: PART A
 # =====================================================
 elif st.session_state.page == "part_a":
 
-    st.title("📘 Part A: Dimensioning of PV Modules")
+    st.title("📘 Part A: PV Module & Layout Sizing")
     st.markdown("---")
 
-    # -----------------------------
-    # STEP 1: MODULE PARAMETERS
-    # -----------------------------
-    st.subheader("Step 1: Choose a PV Module")
+    # ---------------- Step 1 ----------------
+    section_box(
+        "Step 1: PV Module Parameters",
+        "Define electrical and physical characteristics of the PV module."
+    )
 
     col1, col2 = st.columns(2)
 
@@ -111,171 +128,102 @@ elif st.session_state.page == "part_a":
     with col2:
         T_coef = st.number_input("Temperature Coefficient (%/°C)", value=-0.28)
         T_mod = st.number_input("Module Temperature (°C)", value=55)
-        T_src = st.number_input("Reference Temperature (°C)", value=25)
-        f_mm = st.number_input("Module mismatch", value=0.97)
-        f_degrad = st.number_input("Degradation", value=0.975)
-        peak_sun_hours = st.number_input("Peak Sun Hours (h/day)", value=4.0)
+        T_ref = st.number_input("Reference Temperature (°C)", value=25)
+        f_mm = st.number_input("Mismatch Factor", value=0.97)
+        f_deg = st.number_input("Degradation Factor", value=0.975)
+        psh = st.number_input("Peak Sun Hours (h/day)", value=4.0)
 
     panel_area = panel_length * panel_width
-    f_temp_ave = 1 + (T_coef / 100) * (T_mod - T_src)
+    f_temp = 1 + (T_coef / 100) * (T_mod - T_ref)
 
-    power_output = (rated_power * f_mm * f_temp_ave * f_degrad) / panel_area
-    yearly_energy = (peak_sun_hours * 365 * rated_power *
-                     f_mm * f_temp_ave * f_degrad) / panel_area / 1000
+    power_density = (rated_power * f_mm * f_temp * f_deg) / panel_area
+    energy_density = (psh * 365 * rated_power *
+                      f_mm * f_temp * f_deg) / panel_area / 1000
 
+    st.markdown("#### 📊 Module Performance Results")
+    colA, colB = st.columns(2)
+    colA.metric("Power Density (W/m²)", f"{power_density:.2f}")
+    colB.metric("Energy Density (kWh/m²/year)", f"{energy_density:.2f}")
+
+    # ---------------- Step 2 ----------------
     st.markdown("---")
-    st.metric("Power Output (W/m²)", f"{power_output:.2f}")
-    st.metric("Yearly Energy (kWh/m²/year)", f"{yearly_energy:.2f}")
-
-    # -----------------------------
-    # STEP 2: SITE LAYOUT
-    # -----------------------------
-    st.markdown("---")
-    st.subheader("Step 2: Architecture Constraint")
+    section_box(
+        "Step 2: Site Layout Constraint",
+        "Determine maximum installable PV modules based on site dimensions."
+    )
 
     site_width = st.number_input("Site Width (m)", value=45.74)
     site_length = st.number_input("Site Length (m)", value=115.88)
-    delta = st.number_input("Inter-module gap (m)", value=0.01)
+    gap = st.number_input("Inter-module Gap (m)", value=0.01)
 
-    N_land = math.floor(site_width / (panel_width + delta)) * \
-             math.floor(site_length / (panel_length + delta))
-
-    N_port = math.floor(site_width / (panel_length + delta)) * \
-             math.floor(site_length / (panel_width + delta))
+    N_land = math.floor(site_width / (panel_width + gap)) * \
+             math.floor(site_length / (panel_length + gap))
+    N_port = math.floor(site_width / (panel_length + gap)) * \
+             math.floor(site_length / (panel_width + gap))
 
     if N_land >= N_port:
         best_orientation = "Landscape"
-        best_count = N_land
+        best_modules = N_land
     else:
         best_orientation = "Portrait"
-        best_count = N_port
+        best_modules = N_port
 
-    total_power = power_output * best_count
-    total_energy = yearly_energy * best_count
+    total_power = power_density * best_modules
+    total_energy = energy_density * best_modules
 
-    st.session_state.total_modules = best_count
+    st.session_state.total_modules = best_modules
     st.session_state.total_power = total_power
     st.session_state.total_energy = total_energy
 
-    st.success(f"Best Orientation: {best_orientation}")
-    st.metric("Total PV Modules", best_count)
-    st.metric("Total Peak Power (W)", f"{total_power:,.2f}")
-    st.metric("Total Yearly Energy (kWh/year)", f"{total_energy:,.2f}")
+    st.success(f"Best Orientation: **{best_orientation}**")
+    colS1, colS2, colS3 = st.columns(3)
+    colS1.metric("Total PV Modules", best_modules)
+    colS2.metric("Total Peak Power (W)", f"{total_power:,.2f}")
+    colS3.metric("Total Energy (kWh/year)", f"{total_energy:,.2f}")
 
     st.markdown("---")
 
     if st.button("➡️ Proceed to Part B: Inverter Sizing", use_container_width=True):
-        go_to_part_b()
-        st.rerun()
+        go("part_b")
 
 
 # =====================================================
-# PAGE 3: PART B – CENTRAL INVERTER SIZING
+# PAGE 3: PART B
 # =====================================================
 elif st.session_state.page == "part_b":
 
-    st.title("📕 Part B: Sizing with Central Inverter")
+    st.title("📕 Part B: Central Inverter Sizing")
     st.markdown("---")
 
-    # -----------------------------
-    # SUMMARY PART A
-    # -----------------------------
-    st.subheader("Summary of Part A")
+    # ---------------- Summary ----------------
+    section_box(
+        "Summary of Part A",
+        "Overall PV system capacity derived from module and layout sizing.",
+        "#28a745"
+    )
 
-    colS1, colS2, colS3 = st.columns(3)
-    colS1.metric("Total PV Modules", st.session_state.total_modules)
-    colS2.metric("Total Peak Power (W)", f"{st.session_state.total_power:,.2f}")
-    colS3.metric("Total Yearly Energy (kWh/year)", f"{st.session_state.total_energy:,.2f}")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Total PV Modules", st.session_state.total_modules)
+    c2.metric("Total Peak Power (W)", f"{st.session_state.total_power:,.2f}")
+    c3.metric("Total Yearly Energy (kWh)", f"{st.session_state.total_energy:,.2f}")
 
+    # ---------------- Step 1 ----------------
     st.markdown("---")
+    section_box(
+        "Step 1: DC/AC Ratio Selection",
+        "Define inverter oversizing strategy."
+    )
 
-    # -----------------------------
-    # STEP 1: DC/AC RATIO
-    # -----------------------------
-    st.subheader("Step 1: Decide DC/AC Ratio")
     dc_ac = st.number_input("DC/AC Ratio", value=1.2)
 
-    # -----------------------------
-    # STEP 2: INVERTER POWER
-    # -----------------------------
-    st.subheader("Step 2: Determine Suitable Inverter")
-
-    inverter_required = (
-        st.session_state.total_power / dc_ac
+    # ---------------- Step 2 ----------------
+    st.markdown("---")
+    section_box(
+        "Step 2: Inverter Nominal Power Requirement",
+        "Minimum inverter rating to accommodate PV array."
     )
 
-    st.metric(
-        "Required Inverter Nominal Power (W)",
-        f"{inverter_required:,.2f}"
-    )
+    inv_power = st.session_state.total_power / dc_ac
+    st.metric("Required Inverter Nominal Power (W)", f"{inv_power:,.2f}")
 
-    st.markdown("---")
-
-    # -----------------------------
-    # STEP 3–4: STRING SIZING RANGE
-    # -----------------------------
-    st.subheader("Step 3 & 4: String Sizing Range")
-
-    Voc_stc = st.number_input("Voc STC (V)", value=52.6)
-    Vmp_stc = st.number_input("Vmp STC (V)", value=44.3)
-    beta_voc = st.number_input("β Voc (%/°C)", value=-0.25)
-    beta_vmp = st.number_input("β Vmp (%/°C)", value=-0.30)
-    Tmin = st.number_input("T_mod min (°C)", value=10)
-    Tmax = st.number_input("T_mod max (°C)", value=65)
-    Vmax_inv = st.number_input("Inverter Max DC Voltage (V)", value=1500)
-    Vmin_mppt = st.number_input("Inverter Min MPPT Voltage (V)", value=500)
-    Vstart = st.number_input("Inverter Start Voltage (V)", value=600)
-
-    Voc_max = Voc_stc * (1 + (beta_voc / 100) * (Tmin - 25))
-    Voc_min = Voc_stc * (1 + (beta_voc / 100) * (Tmax - 25))
-
-    Ns_max = math.floor(Vmax_inv / Voc_max)
-    Ns_min = math.ceil(Vstart / Voc_min)
-
-    st.metric("Final Ns_max", Ns_max)
-    st.metric("Final Ns_min", Ns_min)
-    st.metric("String Sizing Range", f"{Ns_min} – {Ns_max}")
-
-    st.markdown("---")
-
-    # -----------------------------
-    # STEP 5: OPTIMUM Ns
-    # -----------------------------
-    st.subheader("Step 5: Optimum Modules in Series")
-
-    Vrated = st.number_input("Inverter Rated Voltage (V)", value=1000)
-    W_percent = ((Vrated - Vmin_mppt) / (Vmax_inv - Vmin_mppt)) * 100
-
-    Ns_rec = math.floor(Ns_min + (W_percent / 100) * (Ns_max - Ns_min))
-
-    st.metric("W% Result", f"{W_percent:.2f} %")
-    st.metric("Recommended Ns", Ns_rec)
-
-    st.markdown("---")
-
-    # -----------------------------
-    # STEP 6: MAX STRINGS PER MPPT
-    # -----------------------------
-    st.subheader("Step 6: Maximum Strings per MPPT")
-
-    Isc_mppt = st.number_input("Inverter Isc Max MPPT (A)", value=26)
-    Isc_stc = st.number_input("Module Isc STC (A)", value=13)
-    Sf = 1.25
-
-    Np_max = math.floor(Isc_mppt / (Isc_stc * Sf))
-
-    st.metric("Maximum Strings per MPPT", Np_max)
-
-    st.markdown("---")
-
-    # -----------------------------
-    # STEP 7–8: FINAL CONFIGURATION
-    # -----------------------------
-    st.subheader("Final PV Array Configuration")
-
-    total_strings = math.ceil(
-        st.session_state.total_modules / Ns_rec
-    )
-
-    st.metric("Total Strings Required", total_strings)
-    st.metric("Modules per String", Ns_rec)
+    st.success("✅ Central inverter sizing completed successfully.")
