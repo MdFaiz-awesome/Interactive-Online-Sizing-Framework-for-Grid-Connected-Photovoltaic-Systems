@@ -357,7 +357,7 @@ if st.session_state.get("page") == "part_b":
         vp_stc = st.number_input("V_p STC (V)", value=40.31)
         beta_voc = st.number_input("Beta Voc (%/°C)", value=-0.23)
         beta_vpmax = st.number_input("Beta Vpmax (%/°C)", value=-0.3)
-        t_mod_min = st.number_input("T_mod min (°C)", value=25)
+        t_mod_min = st.number_input("T_mod min (°C)", value=20)
         t_mod_max = st.number_input("T_mod max (°C)", value=75)
         t_stc = 25
     with col2:
