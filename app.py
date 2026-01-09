@@ -273,13 +273,6 @@ elif st.session_state.page == "dimensioning":
         st.rerun()
 
 # =====================================================
-# PAGE 3: PART B
-# =====================================================
-elif st.session_state.page == "part_b":
-    # MASUKKAN CODE PART B YANG SAYA BUATKAN SEBELUM INI
-    # (Part B lengkap dengan semua Step 1-8, styling sama Part A, Back to Part A button)
-    exec(open("part_b_code.py").read())  # contoh modular, atau letakkan terus code Part B di sini
-# =====================================================
 # PART B: SIZING WITH CENTRAL INVERTER
 # =====================================================
 if st.session_state.get("page") == "part_b":
