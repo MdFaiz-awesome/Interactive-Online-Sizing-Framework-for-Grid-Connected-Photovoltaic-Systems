@@ -416,8 +416,8 @@ if st.session_state.get("page") == "part_b":
             <h4>Key Parameters for Maximum String Calculation</h4>
         </div>
         """, unsafe_allow_html=True)
-    isc_max_mppt = st.number_input("Isc_max-mppt (A)", value=9.6)
-    isc_stc = st.number_input("Isc_STC (A)", value=15.0)
+    isc_max_mppt = st.number_input("Isc_max-mppt (A)", value=15.0)
+    isc_stc = st.number_input("Isc_STC (A)", value=9.6)
     sf1 = st.number_input("Safety Factor (Sf1)", value=1.25)
     np_max_mppt = math.floor(isc_max_mppt / (isc_stc * sf1))
     st.info(f"Final Maximum Strings Result = {np_max_mppt}")
