@@ -262,41 +262,6 @@ if st.session_state.get("page") == "part_b":
     # [STEP 1 hingga STEP 8 ikut coding saya hantar sebelum ini]
     # (boleh copy paste coding Part B yang saya tulis sebelum ini)
 
-
-# =====================================================
-# BUTTON KE PART B
-# =====================================================
-st.markdown("<br>", unsafe_allow_html=True)
-if st.button("➡️ Go to Part B: Sizing with Central Inverter", use_container_width=True):
-    st.session_state.best_count = best_count
-    st.session_state.final_power_output_total = final_power_output_total
-    st.session_state.yearly_energy_kwh = final_yearly_energy_total
-    st.session_state.rated_power = rated_power
-    st.session_state.page = "part_b"
-    st.rerun()
-
-# =====================================================
-# PART B: SIZING WITH CENTRAL INVERTER
-# =====================================================
-if st.session_state.get("page") == "part_b":
-    st.markdown("<h1 style='text-align:center;'>Part B: Sizing with Central Inverter</h1>", unsafe_allow_html=True)
-    st.markdown("---")
-
-    # AMBIL DATA DARI PART A
-    best_count = st.session_state.get("best_count", 0)
-    final_power_output_total = st.session_state.get("final_power_output_total", 0)
-    yearly_energy_kwh = st.session_state.get("yearly_energy_kwh", 0)
-    rated_power = st.session_state.get("rated_power", 550)
-
-    # =========================
-    # SUMMARY OF PART A
-    # =========================
-    st.markdown("### Summary of Part A")
-    st.metric("Total PV Modules", f"{best_count}")
-    st.metric("Total Peak Power Output (W)", f"{final_power_output_total:,.2f}")
-    st.metric("Total Yearly Energy (kWh/year)", f"{yearly_energy_kwh:,.2f}")
-    st.markdown("---")
-
     # =========================
     # STEP 1: Decide DC/AC Ratio
     # =========================
