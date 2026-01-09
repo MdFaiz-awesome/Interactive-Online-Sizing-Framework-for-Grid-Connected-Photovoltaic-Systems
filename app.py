@@ -21,9 +21,11 @@ if "page" not in st.session_state:
 def switch_to_dimensioning():
     st.session_state.page = "dimensioning"
 
+def switch_to_part_b():
+    st.session_state.page = "part_b"
 
 # -----------------------------------------------------
-# SET FIXED BACKGROUND IMAGE (SAFE LOAD)
+# BACKGROUND IMAGE
 # -----------------------------------------------------
 def apply_background():
     try:
@@ -42,21 +44,11 @@ def apply_background():
                 """,
                 unsafe_allow_html=True
             )
-    except FileNotFoundError:
-        st.markdown(
-            """
-            <style>
-            .stApp {
-                background-color: #f2f2f2;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-
+    except:
+        pass
 
 # =====================================================
-# PAGE 1: WELCOME PAGE
+# PAGE 1: WELCOME
 # =====================================================
 if st.session_state.page == "welcome":
 
@@ -64,245 +56,160 @@ if st.session_state.page == "welcome":
 
     st.markdown(
         """
-        <div style="text-align:center; padding-top:40px; 
-        background:rgba(255,255,255,0.85); padding:20px; 
-        border-radius:12px; box-shadow:2px 2px 8px rgba(0,0,0,0.2);">
-            <h1 style='font-size:38px; font-weight:bold;'>
-                Interactive Online Sizing Framework for Grid-Connected Photovoltaic Systems
-            </h1>
-            <p style='font-size:20px;'>
-                Hello! This tool will assist you in designing and sizing your PV modules.
-            </p>
+        <div style="text-align:center; padding:30px; background:rgba(255,255,255,0.85);
+        border-radius:12px;">
+        <h1>Interactive Online Sizing Framework for Grid-Connected Photovoltaic Systems</h1>
+        <p>Design and sizing tool for large-scale PV systems.</p>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    st.markdown("<br><br>", unsafe_allow_html=True)
-
-    # START BUTTON WITH ANIMATION
     if st.button("👉 Start Sizing Tool", use_container_width=True):
-        with st.spinner("Loading PV Sizing Dashboard..."):
-            time.sleep(2)
-
+        with st.spinner("Loading..."):
+            time.sleep(1.5)
         switch_to_dimensioning()
         st.rerun()
 
-
 # =====================================================
-# PAGE 2: DIMENSIONING PAGE (FORMAL LAYOUT)
+# PAGE 2: PART A
 # =====================================================
 elif st.session_state.page == "dimensioning":
 
-    st.markdown(
-        "<h1 style='text-align:center;'>📘 Part A: Dimensioning of PV Modules</h1>",
-        unsafe_allow_html=True
-    )
-    st.write("Follow the structured technical steps below to complete your PV sizing process.")
+    st.markdown("<h1 style='text-align:center;'>📘 Part A: Dimensioning of PV Modules</h1>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # -------------------------------------------------
-    # STEP 1 (BOX DESIGN)
-    # -------------------------------------------------
-    st.markdown(
-        """
-        <div style="padding:15px; border-radius:10px; 
-        background-color:#f7f9fc; border-left:6px solid #4A90E2;">
-            <h2>Step 1: Choose a PV Module</h2>
-            <p>Insert the module characteristics and performance factors below.</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    st.markdown("<br>", unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
 
-    with st.container():
-        col1, col2 = st.columns(2)
+    with col1:
+        panel_length = st.number_input("Panel Length (m)", value=2.382)
+        panel_width = st.number_input("Panel Width (m)", value=1.134)
+        rated_power = st.number_input("Rated Power (W)", value=605)
+        peak_sun_hours = st.number_input("Peak Sun Hours (h/day)", value=4.0)
 
-        # LEFT COLUMN
-        with col1:
-            st.markdown("### 🟦 Module Properties")
-            panel_length = st.number_input("Panel Length (m)", min_value=0.1, value=2.382)
-            panel_width = st.number_input("Panel Width (m)", min_value=0.1, value=1.134)
-            rated_power = st.number_input("Rated Power (W)", min_value=1, value=605)
-            isc_stc = st.number_input("Isc STC (A)", min_value=0.1, value=13.0)
-            isc_max_inv = st.number_input("Isc Max Inv (A)", min_value=0.1, value=15.0)
+    with col2:
+        T_coef = st.number_input("Temperature Coefficient (%/°C)", value=-0.28)
+        T_mod = st.number_input("Module Temperature (°C)", value=55)
+        T_ref = st.number_input("Reference Temperature (°C)", value=25)
 
-        # RIGHT COLUMN
-        with col2:
-            st.markdown("### 🟩 Temperature & Performance Factors")
-            T_coef = st.number_input("Temperature Coefficient (°C)", value=-0.28)
-            T_mod = st.number_input("Module Temperature (°C)", value=55)
-            T_src = st.number_input("Reference Temperature (°C)", value=25)
-
-            f_mm = st.number_input("Module mismatch, f_mm", value=0.97)
-            f_clean = st.number_input("Soiling, f_clean", value=0.96)
-            f_degrad = st.number_input("Degradation, f_degrad", value=0.975)
-            f_unshade = st.number_input("Shading, f_unshade", value=0.97)
-            eta_cable = st.number_input("Cable efficiency, η_cable", value=0.97)
-            eta_inv = st.number_input("Inverter efficiency, η_inv", value=0.98)
-            peak_sun_hours = st.number_input("Peak Sun Hours (h/day)", value=4.0)
-
-
-    st.markdown("---")
-
-    # -------------------------------------------------
-    # AUTO CALCULATIONS
-    # -------------------------------------------------
     panel_area = panel_length * panel_width
-    f_temp_ave = 1 + ((T_coef / 100) * (T_mod - T_src))
+    f_temp = 1 + ((T_coef / 100) * (T_mod - T_ref))
 
-    power_output = (rated_power * f_mm * f_temp_ave * f_degrad) / panel_area
+    power_output = rated_power * f_temp / panel_area
+    yearly_energy = (rated_power * peak_sun_hours * 365 * f_temp) / panel_area / 1000
 
-    yearly_energy = (
-        (peak_sun_hours * 365)
-        * rated_power
-        * f_mm
-        * f_temp_ave
-        * f_clean
-        * f_degrad
-        * f_unshade
-        * eta_cable
-        * eta_inv
-    ) / panel_area
+    st.success("Module Performance Calculated")
 
-    # Convert Wh → kWh
-    yearly_energy_kwh = yearly_energy / 1000
+    site_width = st.number_input("Site Width (m)", value=45.74)
+    site_length = st.number_input("Site Length (m)", value=115.88)
+    gap = st.number_input("Inter-module Gap (m)", value=0.01)
 
-    st.markdown(
-        """
-        <div style="padding:15px; border-radius:10px; background-color:#eef7f2; border-left:6px solid #28a745;">
-            <h2>Calculated Module Performance</h2>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    N_up = math.floor(site_width / (panel_width + gap))
+    N_across = math.floor(site_length / (panel_length + gap))
+    best_count = N_up * N_across
 
-    st.subheader("Calculated Results")
+    final_power = power_output * best_count
+    final_energy = yearly_energy * best_count
+
+    st.metric("Total PV Modules", best_count)
+    st.metric("Total Peak Power Output (W)", f"{final_power:,.2f}")
+    st.metric("Total Yearly Energy (kWh/year)", f"{final_energy:,.2f}")
+
+    st.markdown("---")
+    if st.button("➡ Proceed to Part B: Inverter Sizing", use_container_width=True):
+        switch_to_part_b()
+        st.rerun()
+
+# =====================================================
+# PAGE 3: PART B
+# =====================================================
+elif st.session_state.page == "part_b":
+
+    st.markdown("<h1 style='text-align:center;'>⚡ Part B: Sizing with Central Inverter</h1>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    st.subheader("Summary of Part A")
+    st.write(f"• Total PV Modules: **{best_count}**")
+    st.write(f"• Total Peak Power Output: **{final_power:,.2f} W**")
+    st.write(f"• Total Yearly Energy: **{final_energy:,.2f} kWh/year**")
+
+    st.markdown("---")
+
+    st.subheader("Step 1: Decide DC/AC Ratio")
+    fi = st.number_input("DC/AC Ratio (fᵢ)", value=1.2)
+
+    st.subheader("Step 2: Determine Suitable Inverter")
+    required_inv_power = (rated_power * best_count) / fi
+    st.metric("Required Inverter Nominal Power (W)", f"{required_inv_power:,.2f}")
+
+    st.markdown("---")
+    st.subheader("Step 3 & 4: String Sizing Range")
+
     colA, colB = st.columns(2)
-
     with colA:
-        st.metric("Panel Area (m²)", f"{panel_area:.3f}")
-        st.metric("f_temp-ave", f"{f_temp_ave:.4f}")
+        Voc_stc = st.number_input("V_oc STC (V)", value=49.5)
+        Vp_stc = st.number_input("V_p STC (V)", value=41.5)
+        beta_voc = st.number_input("β Voc (%/°C)", value=-0.24)
+        beta_vp = st.number_input("β Vpmax (%/°C)", value=-0.29)
 
     with colB:
-        st.metric("Power Output (W/m²)", f"{power_output:.3f}")
-        st.metric("Yearly Energy (kWh/m²/year)", f"{yearly_energy_kwh:.3f}")
+        Tmin = st.number_input("T_mod min (°C)", value=15)
+        Tmax = st.number_input("T_mod max (°C)", value=65)
+        Vabs = st.number_input("Inverter Vmax abs (V)", value=1500)
+        Vmppt_max = st.number_input("Vmax MPPT (V)", value=1300)
+        Vmppt_min = st.number_input("Vmin MPPT (V)", value=500)
+        Vsys = st.number_input("Module Vsys max (V)", value=1500)
+        Vstart = st.number_input("Vstart inv (V)", value=600)
+        eff = st.number_input("Efficiency", value=0.98)
+
+    Voc_max = Voc_stc * (1 + (beta_voc/100)*(Tmin-25))
+    Ns_max = min(
+        math.floor(Vabs/Voc_max),
+        math.floor(Vmppt_max/(Vp_stc)),
+        math.floor(Vsys/Voc_max)
+    )
+
+    Vp_min = Vp_stc * (1 + (beta_vp/100)*(Tmax-25))
+    Ns_min = max(
+        math.ceil(Vmppt_min/(Vp_min*eff)),
+        math.ceil(Vstart/Voc_stc)
+    )
+
+    st.metric("Final Ns_max", Ns_max)
+    st.metric("Final Ns_min", Ns_min)
+    st.info(f"Recommended String Range: {Ns_min} – {Ns_max}")
 
     st.markdown("---")
+    st.subheader("Step 5: Optimum Modules in Series")
 
-    # -------------------------------------------------
-    # STEP 2: ARCHITECTURE CONSTRAINT
-    # -------------------------------------------------
-    st.markdown(
-        """
-        <div style="padding:15px; border-radius:10px; 
-        background-color:#f7f9fc; border-left:6px solid #4A90E2;">
-            <h2>Step 2: Architecture Constraint</h2>
-            <p>Determine the maximum installable number of modules based on site geometry.</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    st.markdown("<br>", unsafe_allow_html=True)
+    Vrated = st.number_input("Inverter Vrated (V)", value=850)
+    W_percent = ((Vrated - Vmppt_min)/(Vmppt_max - Vmppt_min))*100
+    Ns_rec = math.floor(Ns_min + (W_percent/100)*(Ns_max - Ns_min))
 
-    colX, colY = st.columns(2)
-
-    with colX:
-        st.markdown("### 📐 Module Dimensions")
-        Wm = st.number_input("Width of Module, Wm (m)", value=panel_width)
-        Lm = st.number_input("Length of Module, Lm (m)", value=panel_length)
-
-    with colY:
-        st.markdown("### 📏 Site Layout")
-        delta = st.number_input("Inter-module gap, ∆ (m)", value=0.01)
-        site_width = st.number_input("Width of Site (m)", min_value=1.0, value=45.74)
-        site_length = st.number_input("Length of Site (m)", min_value=1.0, value=115.88)
+    st.metric("W% Result", f"{W_percent:.2f}%")
+    st.metric("Recommended Modules in Series (Ns_rec)", Ns_rec)
 
     st.markdown("---")
+    st.subheader("Step 6: Maximum Strings per MPPT")
 
-    orientation = st.selectbox("PV Installation Orientation", ["Landscape", "Portrait"])
+    Isc_max = st.number_input("Isc max MPPT (A)", value=30)
+    Isc_stc = st.number_input("Isc STC (A)", value=13)
+    Sf1 = 1.25
 
-    if orientation == "Landscape":
-        N_up = math.floor(site_width / (Wm + delta))
-        N_across = math.floor(site_length / (Lm + delta))
-    else:
-        N_up = math.floor(site_width / (Lm + delta))
-        N_across = math.floor(site_length / (Wm + delta))
-
-    N_max = N_up * N_across
-
-    st.success(
-        f"""
-        ### 📊 Orientation: **{orientation}**
-        - Modules Upwards: **{N_up}**  
-        - Modules Across: **{N_across}**  
-        - **Total Installable PV Modules: {N_max}**
-        """
-    )
-
-    # =====================================================
-    # STEP 3: BEST ORIENTATION & FINAL SYSTEM PERFORMANCE
-    # =====================================================
+    Np_max = math.floor(Isc_max/(Isc_stc*Sf1))
+    st.metric("Maximum Strings per MPPT", Np_max)
 
     st.markdown("---")
-    st.markdown(
-        """
-        <div style="padding:15px; border-radius:10px; 
-        background-color:#fff8e6; border-left:6px solid #f5a623;">
-            <h2>Step 3: Best Orientation & Final System Output</h2>
-            <p>The system automatically evaluates both orientations and identifies the configuration that allows the highest number of PV modules to be installed on the available site.</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.subheader("Step 7: Number of Strings per MPPT")
 
-    # Calculate for both orientations
-    N_landscape_up = math.floor(site_width / (Wm + delta))
-    N_landscape_across = math.floor(site_length / (Lm + delta))
-    N_landscape = N_landscape_up * N_landscape_across
-
-    N_portrait_up = math.floor(site_width / (Lm + delta))
-    N_portrait_across = math.floor(site_length / (Wm + delta))
-    N_portrait = N_portrait_up * N_portrait_across
-
-    if N_landscape >= N_portrait:
-        best_orientation = "Landscape"
-        best_count = N_landscape
-    else:
-        best_orientation = "Portrait"
-        best_count = N_portrait
-
-    st.info(
-        f"""
-        ### 🏆 Recommended Orientation: **{best_orientation}**
-        - Maximum installable PV modules: **{best_count}**
-        """
-    )
+    Nt = st.number_input("Total PV Modules per Inverter", value=best_count)
+    result_config = Nt / Ns_rec
+    st.metric("Result Configuration (Strings)", f"{result_config:.0f}")
 
     st.markdown("---")
+    st.subheader("Step 8: Final PV Array Configuration")
 
-    # FINAL SYSTEM PERFORMANCE
-    final_power_output_total = power_output * best_count
-    final_yearly_energy_total = yearly_energy_kwh * best_count
-
-    st.markdown(
-        """
-        <div style="padding:15px; border-radius:10px; 
-        background-color:#e8f5ff; border-left:6px solid #007BFF;">
-            <h2>Final System Performance</h2>
-            <p>The following results represent the full system output based on the optimal PV orientation and maximum number of installable modules.</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    colF1, colF2 = st.columns(2)
-
-    with colF1:
-        st.metric("Total Peak Power Output (W)", f"{final_power_output_total:,.2f}")
-
-    with colF2:
-        st.metric("Total Yearly Energy (kWh/year)", f"{final_yearly_energy_total:,.2f}")
+    st.success(f"""
+    ✔ Total Strings Required: {int(result_config)}
+    ✔ Selected Modules in Series: {Ns_rec}
+    """)
