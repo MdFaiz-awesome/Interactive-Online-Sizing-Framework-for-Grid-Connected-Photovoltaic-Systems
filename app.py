@@ -205,8 +205,8 @@ elif st.session_state.page == "dimensioning":
     with colY:
         st.markdown("### 📏 Site Layout")
         delta = st.number_input("Inter-module gap, ∆ (m)", value=0.01)
-        site_width = st.number_input("Width of Site (m)", min_value=1.0, value=45.74)
-        site_length = st.number_input("Length of Site (m)", min_value=1.0, value=115.88)
+        site_width = st.number_input("Width of Site (m)", min_value=1.0, value=183.27)
+        site_length = st.number_input("Length of Site (m)", min_value=1.0, value=202.18)
 
     st.markdown("---")
     orientation = st.selectbox("PV Installation Orientation", ["Landscape", "Portrait"])
